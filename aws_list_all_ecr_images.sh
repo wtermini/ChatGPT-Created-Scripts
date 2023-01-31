@@ -1,18 +1,13 @@
 #!/bin/bash
 
-# Get a list of all repository names
-repositories=$(aws ecr describe-repositories --query 'repositories[*].repositoryName' --output text)
+echo "Repository,Image,Tag,ARN"
 
-# Loop through the repository names
-while read -r repository_name; do
-  # Get a list of images for the current repository
-  images=$(aws ecr describe-images --repository-name "$repository_name" --query 'imageDetails[*].{imageDigest: imageDigest, imageTags: imageTags[0]}')
-
-  # Loop through the images
-  while read -r image; do
-    image_digest=$(echo $image | jq -r '.imageDigest')
-    image_tag=$(echo $image | jq -r '.imageTags')
-    image_arn="arn:aws:ecr:$(aws configure get region):$(aws sts get-caller-identity --query 'Account' --output text):repository/$repository_name:$image_tag@$image_digest"
-    echo "$repository_name, $image_tag, $image_arn"
-  done <<< "$images"
-done <<< "$repositories"
+for repo in $(aws ecr describe-repositories --query 'repositories[].repositoryName' --output text); do
+    images=$(aws ecr describe-images --repository-name $repo --query 'sort_by(imageDetails,& imagePushedAt)[].{Image:imageTags, Tag:imageDigest, ARN:registryId}')
+    for image in $(echo "${images}" | jq -r '.[] | @base64'); do
+        _jq() {
+            echo ${image} | base64 --decode | jq -r ${1}
+        }
+        echo "${repo},$(_jq '.Image'),$(_jq '.Tag'),$(_jq '.ARN')"
+    done
+done
