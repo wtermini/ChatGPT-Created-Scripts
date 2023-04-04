@@ -1,28 +1,10 @@
-pipeline {
-  agent any
-  environment {
-    registryCredentialsID = 'your-registry-credentials-id'
-    registryURL = 'your-registry-url'
-    imageName = 'your-image-name'
-  }
   stages {
     stage('Build and Push Docker Image') {
       steps {
         script {
-          withCredentials([usernamePassword(credentialsId: env.registryCredentialsID, usernameVariable: 'REGISTRY_USER', passwordVariable: 'REGISTRY_PASS')]) {
-            sh '''
-              # Login to the Docker registry
-              echo "$REGISTRY_PASS" | docker login -u "$REGISTRY_USER" --password-stdin ${registryURL}
-
-              # Build the Docker image
-              docker build -t ${registryURL}/${imageName}:${BUILD_NUMBER} .
-
-              # Push the Docker image to the registry
-              docker push ${registryURL}/${imageName}:${BUILD_NUMBER}
-
-              # Logout from the Docker registry
-              docker logout ${registryURL}
-            '''
+          docker.withRegistry(env.registryURL, env.registryCredentialsID) {
+            def customImage = docker.build("${env.registryURL}/${env.imageName}:${env.BUILD_NUMBER}")
+            customImage.push()
           }
         }
       }
