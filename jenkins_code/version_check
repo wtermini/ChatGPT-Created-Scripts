@@ -1,0 +1,57 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Check VERSION change') {
+            steps {
+                script {
+                    def mainBranch = 'main'
+                    def isMainBranch = env.BRANCH_NAME == mainBranch
+                    def targetCommit = isMainBranch ? 'HEAD~1' : 'HEAD'
+
+                    def versionChanged = sh(
+                        script: "git diff --name-only ${targetCommit} ${mainBranch} | grep -w 'VERSION'",
+                        returnStdout: true
+                    ).trim()
+
+                    if (!versionChanged) {
+                        currentBuild.result = 'NOT_BUILT'
+                        error("VERSION file has not changed in the latest commit${isMainBranch ? ' on the main branch' : ''}.")
+                    }
+
+                    def currentVersion = sh(
+                        script: "cat VERSION",
+                        returnStdout: true
+                    ).trim()
+
+                    def previousVersion = sh(
+                        script: "git show ${mainBranch}:VERSION",
+                        returnStdout: true
+                    ).trim()
+
+                    def isVersionBigger = compareVersions(currentVersion, previousVersion) > 0
+
+                    if (!isVersionBigger) {
+                        currentBuild.result = 'NOT_BUILT'
+                        error("New version ($currentVersion) is not bigger than the previous version ($previousVersion).")
+                    }
+                }
+            }
+        }
+        // Other stages, such as Build, Test, and Deploy, can follow.
+    }
+}
+
+def compareVersions(String v1, String v2) {
+    List<Integer> parts1 = v1.tokenize('.').collect { it.toInteger() }
+    List<Integer> parts2 = v2.tokenize('.').collect { it.toInteger() }
+
+    for (int i = 0; i < parts1.size() && i < parts2.size(); i++) {
+        int diff = parts1[i] - parts2[i]
+        if (diff != 0) {
+            return diff
+        }
+    }
+
+    return parts1.size() - parts2.size()
+}
