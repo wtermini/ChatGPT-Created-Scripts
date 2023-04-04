@@ -86,7 +86,7 @@ Add your code snippet(s) to the appropriate category.
 Create a pull request, detailing the purpose and functionality of the snippet.
 Our dedicated team will review your contribution and provide feedback. Together, we can expand the horizons of the ChatGPT-Created-Scripts repository! 🌱
 
-##FAQs ❓
+## FAQs ❓
 Q: Are the code snippets in this repository guaranteed to work flawlessly?
 
 A: While we strive to provide high-quality code snippets, we cannot guarantee their flawless functionality, as they have been crafted by an AI. Please thoroughly review the snippets before using them in your projects.
@@ -95,10 +95,10 @@ Q: Can I use the code snippets for commercial purposes?
 
 A: Yes, you can use the code snippets for commercial purposes, as they are provided under the WTFPL license.
 
-##Support 🆘
+## Support 🆘
 If you encounter any issues or have questions regarding the ChatGPT-Created-Scripts repository, please feel free to open an issue on the GitHub repository, and our support team will be more than happy to assist you. 🤗
 
-##License 📄
+## License 📄
 The ChatGPT-Created-Scripts repository is provided under the WTFPL license. For more information, please refer to the LICENSE file.
 
 Acknowledgements 🙏
