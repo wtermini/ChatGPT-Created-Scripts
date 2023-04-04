@@ -11,3 +11,40 @@
     }
   }
 }
+
+pipeline {
+  agent any
+  environment {
+    remoteImageName = 'your-remote-image-name'
+    remoteImageTag = 'your-remote-image-tag'
+  }
+  stages {
+    stage('Run Commands in Remote Prebuilt Docker Image') {
+      steps {
+        script {
+          // Pull the remote prebuilt Docker image
+          def remoteImage = docker.image("${env.remoteImageName}:${env.remoteImageTag}")
+
+          // Run commands inside the Docker container
+          remoteImage.inside {
+            // Run a shell command
+            sh 'echo "Running command inside Docker container"'
+            
+            // Run any other command, e.g., a script
+            sh './your-script.sh'
+            
+            // You can also use other build steps supported by Jenkins
+            // For example, running a Maven build inside the container
+            // sh 'mvn clean install'
+          }
+        }
+      }
+    }
+  }
+}
+This Jenkinsfile demonstrates how to pull a remote prebuilt Docker image and run commands inside a container based on that image. Replace the placeholders and the example commands with your actual values and desired commands.
+
+
+
+
+
