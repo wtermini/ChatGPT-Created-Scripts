@@ -26,7 +26,7 @@ pipeline {
           def remoteImage = docker.image("${env.remoteImageName}:${env.remoteImageTag}")
 
           // Run commands inside the Docker container
-          remoteImage.inside {
+             remoteImage.inside("-v ${WORKSPACE}:/workspace") {
             // Run a shell command
             sh 'echo "Running command inside Docker container"'
             
