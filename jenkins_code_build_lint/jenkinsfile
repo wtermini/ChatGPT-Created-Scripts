@@ -1,0 +1,61 @@
+pipeline {
+    agent any
+
+    environment {
+        DOCKERFILE_LINTER = "hadolint/hadolint:latest"
+        PYTHON_IMAGE = "python:3.8-slim"
+        AWS_BUILD_SPEC_FILE = "buildspec.yml"
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Lint Dockerfile') {
+            when {
+                not {
+                    branch 'main'
+                }
+            }
+            steps {
+                script {
+                    docker.image(env.DOCKERFILE_LINTER).inside() {
+                        sh 'hadolint Dockerfile'
+                    }
+                }
+            }
+        }
+
+        stage('Lint buildspec.yml') {
+            when {
+                not {
+                    branch 'main'
+                }
+            }
+            steps {
+                script {
+                    docker.image(env.PYTHON_IMAGE).inside() {
+                        sh 'pip3 install --no-cache-dir --user yamllint'
+                        sh 'yamllint ${AWS_BUILD_SPEC_FILE}'
+                    }
+                }
+            }
+        }
+
+        stage('Build Docker image') {
+            when {
+                not {
+                    branch 'main'
+                }
+            }
+            steps {
+                script {
+                    def dockerImage = docker.build("my-image:${env.BUILD_ID}")
+                }
+            }
+        }
+    }
+}
