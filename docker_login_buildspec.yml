@@ -1,0 +1,30 @@
+version: 0.2
+
+env:
+  variables:
+    ARTIFACTORY_URL: "your-artifactory-instance.com"
+    ARTIFACTORY_SECRET_ARN: "arn:aws:secretsmanager:region:account-id:secret:secret-name"
+
+phases:
+  install:
+    runtime-versions:
+      docker: 20
+
+  pre_build:
+    commands:
+      - echo Logging in to Artifactory...
+      - SECRET_JSON=$(aws secretsmanager get-secret-value --secret-id $ARTIFACTORY_SECRET_ARN --query SecretString --output text)
+      - ARTIFACTORY_USERNAME=$(echo $SECRET_JSON | jq -r '.username')
+      - ARTIFACTORY_PASSWORD=$(echo $SECRET_JSON | jq -r '.token')
+      - echo $ARTIFACTORY_PASSWORD | docker login $ARTIFACTORY_URL -u $ARTIFACTORY_USERNAME --password-stdin
+
+  build:
+    commands:
+      - echo Build started on `date`
+      - docker build -t your-image-name .
+      - docker tag your-image-name $ARTIFACTORY_URL/your-repo-name/your-image-name:your-tag
+
+  post_build:
+    commands:
+      - echo Build completed on `date`
+      - docker push $ARTIFACTORY_URL/your-repo-name/your-image-name:your-tag
